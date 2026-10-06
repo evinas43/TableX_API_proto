@@ -1,0 +1,110 @@
+@host = https://localhost:7253
+@token = PEGA_AQUI_EL_TOKEN
+
+### 0) Crear el primer usuario (solo funciona si la tabla users está vacía; debe ser "caja")
+POST {{host}}/api/users
+Content-Type: application/json
+
+{
+  "username": "caja1",
+  "password": "cambiame",
+  "role": "caja"
+}
+
+### 1) Login -> copia "token" de la respuesta en @token
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "caja1",
+  "password": "cambiame"
+}
+
+### Usuario actual
+GET {{host}}/api/auth/me
+Authorization: Bearer {{token}}
+
+### Crear un camarero (rol caja)
+POST {{host}}/api/users
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "username": "camarero1",
+  "password": "cambiame",
+  "role": "camarero"
+}
+
+### Crear mesa (rol caja)
+POST {{host}}/api/mesas
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "numero": 5 }
+
+### Listar mesas
+GET {{host}}/api/mesas
+Authorization: Bearer {{token}}
+
+### Crear producto (rol caja)
+POST {{host}}/api/productos
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "name": "Coca-Cola", "type": "bebida", "precio": 2.50 }
+
+### Listar bebidas
+GET {{host}}/api/productos?type=bebida
+Authorization: Bearer {{token}}
+
+### Abrir pedido en la mesa 1 (rol camarero)
+POST {{host}}/api/mesas/1/pedidos
+Authorization: Bearer {{token}}
+
+### Pedido abierto de la mesa 1
+GET {{host}}/api/mesas/1/pedido-abierto
+Authorization: Bearer {{token}}
+
+### Añadir producto al pedido 1 (rol camarero)
+POST {{host}}/api/pedidos/1/detalles
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "productoId": 1, "cantidad": 2 }
+
+### Cambiar cantidad de una línea (rol camarero)
+PUT {{host}}/api/pedidos/1/detalles/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "cantidad": 3 }
+
+### Quitar una línea (rol camarero)
+DELETE {{host}}/api/pedidos/1/detalles/1
+Authorization: Bearer {{token}}
+
+### Pendiente de pago
+GET {{host}}/api/pedidos/1/pendiente
+Authorization: Bearer {{token}}
+
+### Pago parcial por líneas (rol caja)
+POST {{host}}/api/pedidos/1/pagos
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "metodo": "tarjeta", "detalleIds": [1] }
+
+### Pago del resto / pedido completo (rol caja)
+POST {{host}}/api/pedidos/1/pagos
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "metodo": "efectivo" }
+
+### Pagos del pedido
+GET {{host}}/api/pedidos/1/pagos
+Authorization: Bearer {{token}}
+
+### Cerrar pedido (rol caja; 409 si queda algo pendiente)
+POST {{host}}/api/pedidos/1/cerrar
+Authorization: Bearer {{token}}
